@@ -1,0 +1,6 @@
+System.Threading.ThreadAbortException: O thread estava sendo anulado.
+   em System.Threading.Thread.AbortInternal()
+   em System.Threading.Thread.Abort(Object stateInfo)
+   em System.Web.HttpResponse.AbortCurrentThread()
+   em System.Web.HttpResponse.End()
+   em webservice_livsaude._default.ArqLivJason(String arqJason, String nomarquivo) na C:\ENTRADA\PROJETOS\PROGRAMAS\LIVSAUDE\webservice_livsaude\default.aspx.cs:linha 277
