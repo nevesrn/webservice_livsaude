@@ -11,6 +11,8 @@ using System.IO;
 using Newtonsoft.Json.Linq;
 using System.Web.Services.Description;
 using RestSharp;
+using System.Data;
+using System.Threading;
 
 namespace webservice_livsaude
 {
@@ -57,76 +59,11 @@ namespace webservice_livsaude
 
         }
 
-        protected void Button1_Click(object sender, EventArgs e)
-        {
-
-            try
-            {
-
-                string[] linhaTextBox = TextBox1.Text.Split('\r'); 
-
-                string cd_remessa, cd_criacao = null;
-                string[] linhaseparada = null;
-                List<Object> linhas = new List<Object>();
-                int intcontador = 0;
-
-                cd_remessa = "";
-                cd_criacao = "";
-
-                // ler o conteudo da linha e add na list 
-                foreach (string linha in linhaTextBox)
-                {
-                    intcontador = 0;
-
-                    linhaseparada = linha.Replace(@"\n","").Split(';');
-                    foreach (var item in linhaseparada)
-                    {
-                        intcontador++;
-
-                        switch (intcontador)
-                        {
-                            case 1:
-                                cd_remessa = item.Replace(".","");
-                                break;
-                            case 2:
-                                cd_criacao = item;
-
-                                if (cd_criacao != "Data geração")
-                                {
-                                    var client = new RestClient("https://livtech.livsaude.com.br/livnow/app/carteiras/lote.php");
-                                    var request = new RestRequest(Method.POST);
-                                    request.AddHeader("content-type", "application/x-www-form-urlencoded");
-                                    //request.AddHeader("authorization", "Bearer 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");
-                                    request.AddParameter("cd_remessa", cd_remessa);
-                                    request.AddParameter("cd_criacao", cd_criacao);
-                                    IRestResponse response = client.Execute(request);
-
-                                    string arqJason = response.Content;
-                                    ArqLivJason(arqJason, cd_remessa);
-
-                                }
-
-                                break;
-
-                        }
-
-                    }
-                }
-
-
-            }
-            catch (Exception ex)
-            {
-
-            }
-
-        }
-
         public void ArqLivJason(string arqJason, string nomarquivo)
         {
             try
             {
-                bool primeiro = true;
+                    bool primeiro = true;
                 string numeroFamilia = "";
                 int contFamilia = 0;
                 int contCartao = 0;
@@ -136,7 +73,11 @@ namespace webservice_livsaude
                 List<JsonLiv> livEvents = JsonConvert.DeserializeObject<List<JsonLiv>>(rawSendGridJSON);
                 string count = livEvents.Count.ToString();
 
-                string dir = Server.MapPath("/repositorio");
+                //CAMINHO SERVIDOR
+                string dir = Server.MapPath("/livsaude/repositorio");
+
+                //CAMINHO LOCAL
+                //string dir = Server.MapPath("/repositorio");
 
                 DirectoryInfo directoryInfo = new DirectoryInfo(dir);
 
@@ -144,7 +85,7 @@ namespace webservice_livsaude
 
                 string directoryname = directoryInfo.FullName;
 
-                System.Diagnostics.Trace.TraceError(rawSendGridJSON + directoryname + "logSendGrid" + agora.ToString("ddMMyyyy") + ".txt"); // For debugging to the Azure Streaming logs
+                //System.Diagnostics.Trace.TraceError(rawSendGridJSON + directoryname + "logSendGrid" + agora.ToString("ddMMyyyy") + ".txt"); // For debugging to the Azure Streaming logs
 
                 JsonLiv Events = new JsonLiv();
 
@@ -262,10 +203,9 @@ namespace webservice_livsaude
                         writer.WriteLine("3;" + contFamilia);
                         writer.WriteLine("9;" + contCartao);
                     }
-
-                    
+                                        
                     System.IO.FileInfo arquivo = new System.IO.FileInfo(directoryname + @"\" + nomarquivo + ".csv");
-              
+                  
                     Response.Clear();
                     Response.ClearHeaders();
                     Response.ClearContent();
@@ -275,14 +215,16 @@ namespace webservice_livsaude
                     Response.Flush();
                     Response.TransmitFile(arquivo.FullName);
                     Response.End();
-
+                    
                     System.IO.File.Delete(arquivo.FullName);
 
-
+                    //Response.Cache.SetCacheability(HttpCacheability.NoCache);
 
                 }
                 catch (Exception ex)
                 {
+                    lblerror.Text = ex.ToString();
+
                     using (StreamWriter writer = new StreamWriter(directoryname + @"\" + "ErrorSendGrid" + nomarquivo + ".csv", true))
                     {
                         writer.Write(ex.ToString());
@@ -295,17 +237,181 @@ namespace webservice_livsaude
             }
             catch (Exception ex)
             {
+                lblerror.Text = ex.ToString();
+            }
+
+        }
+
+
+        protected void Button1_Click1(object sender, EventArgs e)
+        {
+
+            try
+            {
+
+                string[] linhaTextBox = TextBox1.Text.Split(new String[] { "\r\n" }, System.StringSplitOptions.None);
+
+                string cd_remessa, cd_criacao = null;
+                string[] linhaseparada = null;
+                List<Object> linhas = new List<Object>();
+                int intcontador = 0;
+
+                cd_remessa = "";
+                cd_criacao = "";
+
+                // ler o conteudo da linha e add na list 
+                foreach (string linha in linhaTextBox)
+                {
+                    intcontador = 0;
+
+                    linhaseparada = linha.Split(';');
+                    foreach (var item in linhaseparada)
+                    {
+                        intcontador++;
+
+                        switch (intcontador)
+                        {
+                            case 1:
+                                cd_remessa = item.Replace(".", "");
+                                break;
+                            case 2:
+                                cd_criacao = item;
+
+                                if (cd_criacao != "Data geração")
+                                {
+                                    var client = new RestClient("https://livtech.livsaude.com.br/livnow/app/carteiras/lote.php");
+                                    var request = new RestRequest(Method.POST);
+                                    request.AddHeader("content-type", "application/x-www-form-urlencoded");
+                                    //request.AddHeader("authorization", "Bearer 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");
+                                    request.AddParameter("cd_remessa", cd_remessa);
+                                    request.AddParameter("cd_criacao", cd_criacao);
+                                    IRestResponse response = client.Execute(request);
+
+                                    string arqJason = response.Content;
+                                    ArqLivJason(arqJason, cd_remessa);
+
+                                }
+
+                                break;
+
+                        }
+
+                    }
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                lblerror.Text = ex.ToString();
 
             }
 
         }
 
-        public static string bingPathToAppDir(string localPath)
+        protected void Button2_Click(object sender, EventArgs e)
         {
-            string currentDir = Environment.CurrentDirectory;
-            DirectoryInfo directory = new DirectoryInfo(
-                Path.GetFullPath(Path.Combine(currentDir, @"..\..\" + localPath)));
-            return directory.ToString();
+
+            if (FileUpload1.HasFile && Path.GetExtension(FileUpload1.FileName) == ".csv")
+            {
+                using (StreamReader arquivo = new StreamReader(FileUpload1.PostedFile.InputStream))
+                {
+
+                    try
+                    {
+
+                        int codigo = 0;
+                        int data = 0;
+                        int lin = 0;
+
+                        string linha, cd_remessa, cd_criacao = null;
+                        string[] linhaseparada = null;
+                        List<Object> linhas = new List<Object>();
+                        int intcontador = 0;
+
+                        cd_remessa = "";
+                        cd_criacao = "";
+
+                        // ler o conteudo da linha e add na list 
+                        while ((linha = arquivo.ReadLine()) != null)
+                        {
+                            lin++;
+
+                            intcontador = 0;
+
+                            linhaseparada = linha.Split(';');
+
+                            if (lin == 1)
+                            {
+
+                                foreach (var item in linhaseparada)
+                                {
+                                    intcontador++;
+
+                                    switch (item.ToUpper())
+                                    {
+
+                                        case "CODIGO":
+                                            codigo = intcontador;
+                                            break;
+                                        case "DATA":
+                                            data = intcontador;
+                                            break;
+
+                                    }
+
+                                }
+
+                            }
+
+                            intcontador = 0;
+
+
+                            foreach (var item in linhaseparada)
+                            {
+                                intcontador++;
+
+                                if (intcontador == codigo)
+                                {
+                                    cd_remessa = item.Replace(".", "");
+                                }
+
+                                if (intcontador == data)
+                                {
+                                    cd_criacao = item;
+
+                                    if (cd_criacao != "DATA")
+                                    {
+                                        var client = new RestClient("https://livtech.livsaude.com.br/livnow/app/carteiras/lote.php");
+                                        var request = new RestRequest(Method.POST);
+                                        request.AddHeader("content-type", "application/x-www-form-urlencoded");
+                                        //request.AddHeader("authorization", "Bearer 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");
+                                        request.AddParameter("cd_remessa", cd_remessa);
+                                        request.AddParameter("cd_criacao", cd_criacao);
+                                        IRestResponse response = client.Execute(request);
+
+                                        string arqJason = response.Content;
+                                        ArqLivJason(arqJason, cd_remessa);
+
+                                    }
+                                }
+
+                            }
+                        }
+
+
+                    }
+                    catch
+                    {
+
+                    }
+
+                }
+            }
+            else
+            {
+                UploadStatusLabel.Text = "O arquivo precisa ser csv separado por ponto e vírgula.";
+            }
         }
     }
 }

@@ -27,15 +27,31 @@
     </tale>
     <p style="text-align: center">
 
-        Digite ou cole a(s) remessas na caixa abaixo e click no botão baixar<p style="text-align: center">
+        Digite ou cole a remessa na caixa abaixo e click no botão baixar<p style="text-align: center">
 
             <asp:TextBox ID="TextBox1" runat="server" Height="160px" TextMode="MultiLine" Width="543px"></asp:TextBox>
         <p style="text-align: center">
 
-            <asp:Button ID="Button1" runat="server" OnClick="Button1_Click" Text="Baixar" Width="99px" />
+            <asp:Button ID="Button1" runat="server" Text="Baixar" Width="99px" OnClick="Button1_Click1" />
+
+        <p style="text-align: center">
+
+            &nbsp;<p style="text-align: center">
+
+            Baixar de uma planilha (arquivo .csv - campos obrigatórios: CODIGO, DATA)<p style="text-align: center">
+
+            <asp:FileUpload ID="FileUpload1" runat="server" Width="454px" />
+&nbsp;&nbsp;
+            <asp:Button ID="Button2" runat="server" OnClick="Button2_Click" Text="Baixar CSV" />
+        <p style="text-align: center">
+
+            <asp:Label ID="UploadStatusLabel" runat="server" ForeColor="#FF3300"></asp:Label>
 
     <p>
         &nbsp;</p>
+        <p>
+            <asp:Label ID="lblerror" runat="server"></asp:Label>
+        </p>
     </form>
 </body>
 </html>
